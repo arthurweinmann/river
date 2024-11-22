@@ -168,7 +168,7 @@ to use a development database only.
 	// migrate-down and migrate-up share a set of options, so this is a way of
 	// plugging in all the right flags to both so options and docstrings stay
 	// consistent.
-	addMigrateFlags := func(cmd *cobra.Command, opts *migrateOpts) {
+	addMigrateFlags := func(cmd *cobra.Command, opts *MigrateOpts) {
 		addDatabaseURLFlag(cmd, &opts.DatabaseURL)
 		cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "print information on migrations, but don't apply them")
 		cmd.Flags().StringVar(&opts.Line, "line", "", "migration line to operate on (default: main)")
@@ -179,7 +179,7 @@ to use a development database only.
 
 	// migrate-down
 	{
-		var opts migrateOpts
+		var opts MigrateOpts
 
 		cmd := &cobra.Command{
 			Use:   "migrate-down",
@@ -270,7 +270,7 @@ TODO
 
 	// migrate-up
 	{
-		var opts migrateOpts
+		var opts MigrateOpts
 
 		cmd := &cobra.Command{
 			Use:   "migrate-up",
@@ -286,7 +286,7 @@ operations can be prevented with --dry-run. Combine --show-sql and --dry-run to
 dump prospective migrations that would be applied to stdout.
 	`),
 			Run: func(cmd *cobra.Command, args []string) {
-				RunCommand(ctx, makeCommandBundle(&opts.DatabaseURL), &migrateUp{}, &opts)
+				RunCommand(ctx, makeCommandBundle(&opts.DatabaseURL), &MigrateUp{}, &opts)
 			},
 		}
 		addMigrateFlags(cmd, &opts)
@@ -365,7 +365,7 @@ func (c *bench) Run(ctx context.Context, opts *benchOpts) (bool, error) {
 	return true, nil
 }
 
-type migrateOpts struct {
+type MigrateOpts struct {
 	DatabaseURL   string
 	DryRun        bool
 	Line          string
@@ -374,7 +374,7 @@ type migrateOpts struct {
 	TargetVersion int
 }
 
-func (o *migrateOpts) Validate() error {
+func (o *MigrateOpts) Validate() error {
 	if o.DatabaseURL == "" {
 		return errors.New("database URL cannot be empty")
 	}
@@ -386,7 +386,7 @@ type migrateDown struct {
 	CommandBase
 }
 
-func (c *migrateDown) Run(ctx context.Context, opts *migrateOpts) (bool, error) {
+func (c *migrateDown) Run(ctx context.Context, opts *MigrateOpts) (bool, error) {
 	migrator, err := c.GetMigrator(&rivermigrate.Config{Line: opts.Line, Logger: c.Logger})
 	if err != nil {
 		return false, err
@@ -419,7 +419,7 @@ func roundDuration(duration time.Duration) time.Duration {
 	}
 }
 
-func migratePrintResult(out io.Writer, opts *migrateOpts, res *rivermigrate.MigrateResult, direction rivermigrate.Direction) {
+func migratePrintResult(out io.Writer, opts *MigrateOpts, res *rivermigrate.MigrateResult, direction rivermigrate.Direction) {
 	if len(res.Versions) < 1 {
 		fmt.Fprintf(out, "no migrations to apply\n")
 		return
@@ -574,11 +574,11 @@ func (c *migrateList) Run(ctx context.Context, opts *migrateListOpts) (bool, err
 	return true, nil
 }
 
-type migrateUp struct {
+type MigrateUp struct {
 	CommandBase
 }
 
-func (c *migrateUp) Run(ctx context.Context, opts *migrateOpts) (bool, error) {
+func (c *MigrateUp) Run(ctx context.Context, opts *MigrateOpts) (bool, error) {
 	migrator, err := c.GetMigrator(&rivermigrate.Config{Line: opts.Line, Logger: c.Logger})
 	if err != nil {
 		return false, err
